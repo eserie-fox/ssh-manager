@@ -1,0 +1,29 @@
+[
+    {
+        "ServerName": "MyServerName",
+        "Comment": "[Optional]this server used for...",
+        "Endpoint": [
+            {
+                "EndPointName": "[Optional]Public Access",
+                "HostName": "x.y.z.c",
+                "Port": "[Optional]1234",
+                "Comment": "[Optional]for public accessing"
+            }
+        ],
+        "Authentication": [
+            {
+                "AuthenticationName": "[Optional]home pc",
+                "User": "fox",
+                "IdentityFile": "[Optional]./path/to/file",
+                "Comment": "[Optional]my home pc ssh key"
+            }
+        ],
+        "ExtraConfig": [
+            {
+                "Key": "[optional]KexAlgorithms",
+                "Value": "[optional]+diffie-hellman-group1-sha1,diffie-hellman-group14-sha1",
+                "Comment": "[optional] this specific server uses it..."
+            }
+        ]
+    }
+]
