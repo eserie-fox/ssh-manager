@@ -1,3 +1,4 @@
+#!/bin/python
 import json
 import re
 import os
@@ -57,6 +58,11 @@ def lrm(id: int):
     configs = current_ssh_config()
     if id >= len(configs):
         raise ValueError(f"id out of range: {id}")
+    print(f"Remove config {configs[id].name} (Y/n)?\n{configs[id].to_string(1)}")
+    result = input("(Y/n):")
+    if result != "Y":
+        print("Canceled.")
+        return
     mgr = ssh_manager()
     mgr.delete_identify_file(configs[id])
     del configs[id]
@@ -95,7 +101,7 @@ def ladd(config_name: str, endpoint_id: int | None = None, auth_id: int | None =
     flush()
 
 
-def pull_latest():
+def pull():
     ssh_manager().pull_ssh_key_repo()
     initialize()
 

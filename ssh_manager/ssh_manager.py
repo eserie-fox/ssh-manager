@@ -88,7 +88,10 @@ class SSHManager:
         return ssh_host_config
 
     def delete_identify_file(self, ssh_host_config: builder.SSHHostConfig):
-        identify_file = os.path.expanduser(ssh_host_config.get_ssh_identity_file())
+        identify_file = ssh_host_config.get_ssh_identity_file()
+        if identify_file is None:
+            return
+        identify_file = os.path.expanduser(identify_file)
         if os.path.isfile(identify_file):
             os.remove(identify_file)
         dir_name = os.path.dirname(identify_file)
