@@ -56,6 +56,55 @@ class SSHManager:
             git.Repo.clone_from(remote_repo, local_repo)
         self.read_ssh_key_repo_config()
 
+    def check_ssh_key_repo_config(self) -> bool:
+        try:
+            config = None
+            path = self.config.data()["ssh_key_local_repo"] + "/config.json"
+            with open(
+                path,
+                "r",
+                encoding="utf-8",
+            ) as file:
+                config = json.load(file)
+            if not config:
+                raise ValueError("Config file is empty")
+
+            config.sort(key=lambda x: x["ServerName"])
+
+            for server in config:
+                if not server["ServerName"]:
+                    raise ValueError("Server name is empty")
+                if "Authentication" in server:
+                    auths = server["Authentication"]
+                    for auth in auths:
+                        if "IdentityFile" in auth:
+                            identity_file = auth["IdentityFile"]
+                            identity_file = (
+                                self.get_abs_path_based_on_ssh_key_repo_config(
+                                    identity_file
+                                )
+                            )
+                            if not os.path.exists(identity_file):
+                                raise ValueError(
+                                    f"Identity file {identity_file} not found"
+                                )
+
+            shutil.copy2(path, path + ".bak")
+
+            with open(
+                path,
+                "w",
+                encoding="utf-8",
+            ) as file:
+                json.dump(config, file, indent=4)
+
+        except Exception as e:
+            print(f"Failed to check ssh key repo config: {e}")
+            return False
+
+        print(f"Success to check ssh key repo config")
+        return True
+
     def read_ssh_key_repo_config(self):
         with open(
             self.config.data()["ssh_key_local_repo"] + "/config.json",

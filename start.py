@@ -105,6 +105,8 @@ def pull():
     ssh_manager().pull_ssh_key_repo()
     initialize()
 
+def rcheck():
+    ssh_manager().check_ssh_key_repo_config()
 
 def initialize():
     g.clear()
