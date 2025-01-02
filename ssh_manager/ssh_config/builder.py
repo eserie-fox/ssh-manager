@@ -328,6 +328,7 @@ class SSHHostConfig:
         )
 
     def add_config(self, key: str, value: str, comment: str):
+        value = value.strip("'\"")
         if self.endpoint.add_config(key, value, comment):
             return
         if self.authentication.add_config(key, value, comment):

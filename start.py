@@ -113,7 +113,7 @@ def initialize():
     try:
         mgr.read_ssh_key_repo_config()
     except:
-        pull_latest()
+        pull()
         return
     g["current_ssh_config"] = mgr.parse_current_ssh_config()
 
