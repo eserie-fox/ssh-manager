@@ -30,7 +30,7 @@ def get_identifier_file_path(
         os.path.join(
             ssh_directory, server_name, original_identifier_file_path.split("/")[-1]
         )
-    )
+    ).replace("\\", "/")
 
 
 def is_none_or_empty(s: str):

@@ -15,10 +15,14 @@ class Config:
         )
 
     def to_abs_path_based_on_config(self, relevant_path: str) -> str:
-        return os.path.normpath(os.path.join(self.config_abs_path, relevant_path))
+        return os.path.normpath(
+            os.path.join(self.config_abs_path, relevant_path)
+        ).replace("\\", "/")
 
     def to_abs_path_based_on_local_repo(self, relevant_path: str) -> str:
-        return os.path.normpath(os.path.join(self.local_repo_abs_path, relevant_path))
+        return os.path.normpath(
+            os.path.join(self.local_repo_abs_path, relevant_path)
+        ).replace("\\", "/")
 
     def data(self):
         return self.config_data

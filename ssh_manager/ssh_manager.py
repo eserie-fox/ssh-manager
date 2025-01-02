@@ -22,7 +22,9 @@ class SSHManager:
         return self.config.to_abs_path_based_on_local_repo(relevant_path)
 
     def get_ssh_config_path(self) -> str:
-        return os.path.expanduser(os.path.join(self.get_ssh_directory() + "config"))
+        return os.path.normpath(
+            os.path.expanduser(os.path.join(self.get_ssh_directory(), "config"))
+        ).replace("\\", "/")
 
     def get_ssh_key_list(self) -> List:
         ignore = {"authorized_keys", "config", "known_hosts", "known_hosts.old"}
@@ -37,7 +39,7 @@ class SSHManager:
         return ret
 
     def pull_ssh_key_repo(self):
-        remote_repo = self.config.data()['ssh_key_remote_repo']
+        remote_repo = self.config.data()["ssh_key_remote_repo"]
         local_repo = os.path.expanduser(self.config.data()["ssh_key_local_repo"])
 
         if os.path.exists(local_repo):
@@ -60,10 +62,10 @@ class SSHManager:
             "r",
             encoding="utf-8",
         ) as file:
-            config =  json.load(file)
+            config = json.load(file)
             self.ssh_key_repo_config = {}
             for server in config:
-                self.ssh_key_repo_config[server['ServerName']] = server
+                self.ssh_key_repo_config[server["ServerName"]] = server
 
     def parse_current_ssh_config(self):
         if not os.path.exists(self.get_ssh_config_path()):
