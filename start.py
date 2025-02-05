@@ -82,14 +82,14 @@ def ladd(config_name: str, endpoint_id: int | None = None, auth_id: int | None =
     if endpoint_id is None:
         if len(config["Endpoint"]) > 1:
             raise ValueError(
-                f"config_name has multiple endpoints: {config_name}: {config['Endpoint']}"
+                f"config_name has multiple endpoints[1]: {config_name}: {config['Endpoint']}"
             )
         else:
             endpoint_id = 0
     if auth_id is None:
         if len(config["Authentication"]) > 1:
             raise ValueError(
-                f"config_name has multiple auths: {config_name}: {config['Authentication']}"
+                f"config_name has multiple auths[2]: {config_name}: {config['Authentication']}"
             )
         else:
             auth_id = 0
