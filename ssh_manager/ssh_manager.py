@@ -1,11 +1,13 @@
 import json
-import stat
-from typing import List
-from ssh_manager.utils.config import Config
-import ssh_manager.ssh_config.parser as parser
-import ssh_manager.ssh_config.builder as builder
 import os
+import stat
+from datetime import datetime
+from typing import List
+
 import git
+import ssh_manager.ssh_config.builder as builder
+import ssh_manager.ssh_config.parser as parser
+from ssh_manager.utils.config import Config
 import shutil
 
 
@@ -146,9 +148,42 @@ class SSHManager:
         if os.path.isfile(identify_file):
             os.remove(identify_file)
         dir_name = os.path.dirname(identify_file)
-
-        if not os.listdir(dir_name):
+        if os.path.isdir(dir_name) and not os.listdir(dir_name):
             os.rmdir(dir_name)
+
+    def render_ssh_config(self, configs: List[builder.SSHHostConfig]) -> str:
+        """Render a complete ssh config string sorted by host name."""
+        sorted_configs = sorted(configs, key=lambda cfg: cfg.name or "")
+        lines = ["# This file is managed by ssh_manager"]
+        for cfg in sorted_configs:
+            lines.append("")
+            lines.append(cfg.to_string(0).rstrip())
+        lines.append("")
+        return "\n".join(lines)
+
+    def write_ssh_config(self, configs: List[builder.SSHHostConfig], backup: bool = True):
+        ssh_config = self.get_ssh_config_path()
+        os.makedirs(os.path.dirname(ssh_config), exist_ok=True)
+
+        content = self.render_ssh_config(configs)
+        tmp_path = f"{ssh_config}.tmp"
+
+        with open(tmp_path, "w", encoding="utf-8") as file:
+            file.write(content)
+            file.flush()
+            os.fsync(file.fileno())
+
+        if backup and os.path.exists(ssh_config):
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = f"{ssh_config}.bak.{timestamp}"
+            shutil.copy2(ssh_config, backup_path)
+
+        try:
+            os.replace(tmp_path, ssh_config)
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+            raise
 
     def copy_identify_file(self, ssh_host_config: builder.SSHHostConfig):
         original_identify_file = ssh_host_config.get_ssh_original_identity_file()
