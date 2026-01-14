@@ -2,7 +2,7 @@ import json
 import os
 import stat
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 import git
 import ssh_manager.ssh_config.builder as builder
@@ -13,7 +13,7 @@ import shutil
 
 class SSHManager:
 
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: Optional[str] = None):
         self.config = Config(config_path)
         self.ssh_key_repo_config = None
 

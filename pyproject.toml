@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ssh-manager"
+version = "0.1.0"
+description = "Manage local SSH config alongside a remote key repository."
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{ name = "ssh-manager" }]
+dependencies = [
+    "gitpython",
+    "rich>=13",
+    "typer>=0.12",
+]
+
+[project.scripts]
+ssh-manager = "ssh_manager.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ssh_manager*"]
