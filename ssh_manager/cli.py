@@ -12,6 +12,7 @@ from rich.table import Table
 
 from ssh_manager.ssh_config.builder import SSHHostConfig
 from ssh_manager.ssh_manager import SSHManager
+from ssh_manager.utils import paths
 
 console = Console()
 
@@ -127,6 +128,19 @@ def _filter_host_configs(
     return [cfg for cfg in configs if cfg.name and pattern.search(cfg.name)]
 
 
+def _resolve_config_path(config: Optional[Path]) -> Path:
+    if config is None:
+        candidate = paths.DATA_ROOT / "config.json"
+    else:
+        candidate = Path(str(paths.expand_data_root(config)))
+    candidate = candidate.expanduser()
+    if not candidate.is_absolute():
+        candidate = (paths.DATA_ROOT / candidate).resolve()
+    else:
+        candidate = candidate.resolve()
+    return candidate
+
+
 def _render_endpoint_table(endpoints: List[Dict]) -> Table:
     table = Table(show_header=True, header_style="bold")
     table.add_column("index", style="cyan", justify="right")
@@ -202,11 +216,11 @@ def _choose_index(
 @app.callback()
 def main(
     ctx: typer.Context,
-    config: Path = typer.Option(
-        Path("config.json"),
+    config: Optional[Path] = typer.Option(
+        None,
         "--config",
         "-c",
-        help="Path to the ssh-manager config.json file.",
+        help="Path to the ssh-manager config.json file (defaults to DATA_ROOT/config.json).",
         dir_okay=False,
         exists=False,
         readable=True,
@@ -217,7 +231,7 @@ def main(
         help="Automatically pull remote repo if remote config is missing.",
     ),
 ):
-    resolved = config.expanduser()
+    resolved = _resolve_config_path(config)
     if not resolved.exists():
         typer.echo(
             f"Config file not found at {resolved}. Provide --config or create it first.",
