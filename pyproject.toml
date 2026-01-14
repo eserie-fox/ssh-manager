@@ -4,15 +4,34 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ssh-manager"
-version = "0.1.0"
+version = "1.0.0"
 description = "Manage local SSH config alongside a remote key repository."
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [{ name = "ssh-manager" }]
+license = { text = "MIT" }
+keywords = ["ssh", "automation", "cli", "configuration"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: System :: Systems Administration",
+]
 dependencies = [
-    "gitpython",
+    "gitpython>=3.1",
     "rich>=13",
     "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+    "ruff>=0.5",
+    "mypy>=1.8",
 ]
 
 [project.scripts]
@@ -21,3 +40,6 @@ ssh-manager = "ssh_manager.__main__:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["ssh_manager*"]
+
+[tool.setuptools]
+license-files = ["LICENSE"]
