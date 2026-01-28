@@ -226,15 +226,15 @@ class SSHManager:
         ), "identify_file and original_identify_file should be both None or not None"
 
         if original_identify_file is not None:
-            # 检查 identify_file 路径是否存在，如果不存在则新建文件夹
+            # Ensure identify_file directory exists; create it if needed.
             if not os.path.exists(os.path.dirname(identify_file)):
                 os.makedirs(os.path.dirname(identify_file), exist_ok=True)
-            # 确保 original_identify_file 路径存在，否则raise Exception
+            # Ensure original_identify_file exists; otherwise raise an exception.
             if not os.path.exists(original_identify_file):
                 raise ValueError(
                     f"original_identify_file not exists: {original_identify_file}"
                 )
-            # 复制文件并设置权限
+            # Copy file and set permissions.
             shutil.copy2(original_identify_file, identify_file)
             os.chmod(identify_file, stat.S_IRUSR | stat.S_IWUSR)
 

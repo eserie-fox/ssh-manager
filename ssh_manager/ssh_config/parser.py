@@ -2,12 +2,12 @@ import re
 from typing import List, Tuple
 from ssh_manager.ssh_config.builder import SSHHostConfig
 
-# 定义各种Token类型
+# Define token types.
 TOKEN_TYPES = {
-    "COMMENT": r"#.*",  # 注释（以#开头）
-    "HOST": r"\bHost\b",  # 主机名或通配符（Host）
-    "ITEM": r"\S+",  # 配置项的值
-    "WHITESPACE": r"\s+",  # 空白字符
+    "COMMENT": r"#.*",  # Comment (starts with #)
+    "HOST": r"\bHost\b",  # Host name or wildcard (Host)
+    "ITEM": r"\S+",  # Config item value
+    "WHITESPACE": r"\s+",  # Whitespace
 }
 
 
@@ -15,38 +15,38 @@ class SSHConfigLexer:
     def __init__(self, source_code):
         self.source_code = source_code
         self.tokens = []
-        self.position = 0  # 当前字符的索引
-        self.line = 1  # 当前行号
-        self.column = 1  # 当前列号
+        self.position = 0  # Current character index
+        self.line = 1  # Current line number
+        self.column = 1  # Current column number
 
     def get_token(self):
         """
-        获取下一个Token, 同时维护行号和列号
+        Get the next token and update line/column counters.
         """
         if self.position >= len(self.source_code):
-            return None  # 到达文件结尾
+            return None  # End of file
 
         for token_type, pattern in TOKEN_TYPES.items():
             regex = re.compile(pattern)
             match = regex.match(self.source_code, self.position)
             if match:
                 value = match.group(0)
-                self.position = match.end()  # 更新当前位置
+                self.position = match.end()  # Update current position
 
-                # 更新行号和列号
-                lines = value.split("\n")  # 分割为多行
+                # Update line and column
+                lines = value.split("\n")  # Split into lines
                 if len(lines) > 1:
-                    # 多行的情况
-                    self.line += len(lines) - 1  # 行号增加
-                    self.column = len(lines[-1]) + 1  # 新的一行列号从1开始
+                    # Multi-line token
+                    self.line += len(lines) - 1  # Increment line count
+                    self.column = len(lines[-1]) + 1  # New line column starts at 1
                 else:
-                    self.column += len(value)  # 在当前行列号增加
+                    self.column += len(value)  # Increment column on current line
 
-                # 跳过空白符，不将其加入token
+                # Skip whitespace tokens
                 if token_type != "WHITESPACE":
                     return (token_type, value, self.line, self.column)
 
-                # 递归调用跳过空白符
+                # Recurse to skip whitespace
                 return self.get_token()
 
         raise ValueError(
