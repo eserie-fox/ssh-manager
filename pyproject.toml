@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ssh-manager"
-version = "1.0.0"
+version = "1.0.1"
 description = "Manage local SSH config alongside a remote key repository."
 readme = "README.md"
 requires-python = ">=3.8"

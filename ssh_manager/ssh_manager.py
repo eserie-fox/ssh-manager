@@ -43,20 +43,49 @@ class SSHManager:
     def pull_ssh_key_repo(self):
         remote_repo = self.config.data()["ssh_key_remote_repo"]
         local_repo = os.path.expanduser(self.config.data()["ssh_key_local_repo"])
+        env = self._build_git_environment(remote_repo)
 
         if os.path.exists(local_repo):
-            # 通过获取Git仓库的信息检查URL是否一致
-            repo = git.Repo(local_repo)
-            current_url = repo.remotes.origin.url
-            if current_url != remote_repo:
-                raise ValueError(
-                    f"Mismatch repo url, local path {local_repo} url={current_url}, remote url={remote_repo}"
-                )
-            repo.remotes.origin.pull()
+            try:
+                repo = git.Repo(local_repo)
+            except git.exc.InvalidGitRepositoryError as exc:
+                if os.path.isdir(local_repo) and not os.listdir(local_repo):
+                    shutil.rmtree(local_repo)
+                    repo = git.Repo.clone_from(remote_repo, local_repo, env=env)
+                else:
+                    raise ValueError(
+                        f"Local repo path exists but is not a git repository: {local_repo}"
+                    ) from exc
         else:
-            os.makedirs(local_repo)
-            git.Repo.clone_from(remote_repo, local_repo)
+            os.makedirs(os.path.dirname(local_repo), exist_ok=True)
+            repo = git.Repo.clone_from(remote_repo, local_repo, env=env)
+
+        repo.git.update_environment(**env)
+
+        if not repo.remotes:
+            raise ValueError(f"No remotes configured for local repo: {local_repo}")
+        origin = repo.remotes.origin
+        current_url = origin.url
+        if current_url != remote_repo:
+            raise ValueError(
+                f"Mismatch repo url, local path {local_repo} url={current_url}, remote url={remote_repo}"
+            )
+
+        origin.pull()
+
         self.read_ssh_key_repo_config()
+
+    def _build_git_environment(self, remote_repo: str) -> dict:
+        env = {
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_ASKPASS": "echo",
+        }
+        if remote_repo.startswith("git@") or remote_repo.startswith("ssh://"):
+            env["GIT_SSH_COMMAND"] = (
+                "ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
+            )
+        return env
+
 
     def check_ssh_key_repo_config(self) -> bool:
         try:
