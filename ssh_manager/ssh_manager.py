@@ -43,20 +43,49 @@ class SSHManager:
     def pull_ssh_key_repo(self):
         remote_repo = self.config.data()["ssh_key_remote_repo"]
         local_repo = os.path.expanduser(self.config.data()["ssh_key_local_repo"])
+        env = self._build_git_environment(remote_repo)
 
         if os.path.exists(local_repo):
-            # 通过获取Git仓库的信息检查URL是否一致
-            repo = git.Repo(local_repo)
-            current_url = repo.remotes.origin.url
-            if current_url != remote_repo:
-                raise ValueError(
-                    f"Mismatch repo url, local path {local_repo} url={current_url}, remote url={remote_repo}"
-                )
-            repo.remotes.origin.pull()
+            try:
+                repo = git.Repo(local_repo)
+            except git.exc.InvalidGitRepositoryError as exc:
+                if os.path.isdir(local_repo) and not os.listdir(local_repo):
+                    shutil.rmtree(local_repo)
+                    repo = git.Repo.clone_from(remote_repo, local_repo, env=env)
+                else:
+                    raise ValueError(
+                        f"Local repo path exists but is not a git repository: {local_repo}"
+                    ) from exc
         else:
-            os.makedirs(local_repo)
-            git.Repo.clone_from(remote_repo, local_repo)
+            os.makedirs(os.path.dirname(local_repo), exist_ok=True)
+            repo = git.Repo.clone_from(remote_repo, local_repo, env=env)
+
+        repo.git.update_environment(**env)
+
+        if not repo.remotes:
+            raise ValueError(f"No remotes configured for local repo: {local_repo}")
+        origin = repo.remotes.origin
+        current_url = origin.url
+        if current_url != remote_repo:
+            raise ValueError(
+                f"Mismatch repo url, local path {local_repo} url={current_url}, remote url={remote_repo}"
+            )
+
+        origin.pull()
+
         self.read_ssh_key_repo_config()
+
+    def _build_git_environment(self, remote_repo: str) -> dict:
+        env = {
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_ASKPASS": "echo",
+        }
+        if remote_repo.startswith("git@") or remote_repo.startswith("ssh://"):
+            env["GIT_SSH_COMMAND"] = (
+                "ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
+            )
+        return env
+
 
     def check_ssh_key_repo_config(self) -> bool:
         try:
@@ -197,15 +226,15 @@ class SSHManager:
         ), "identify_file and original_identify_file should be both None or not None"
 
         if original_identify_file is not None:
-            # 检查 identify_file 路径是否存在，如果不存在则新建文件夹
+            # Ensure identify_file directory exists; create it if needed.
             if not os.path.exists(os.path.dirname(identify_file)):
                 os.makedirs(os.path.dirname(identify_file), exist_ok=True)
-            # 确保 original_identify_file 路径存在，否则raise Exception
+            # Ensure original_identify_file exists; otherwise raise an exception.
             if not os.path.exists(original_identify_file):
                 raise ValueError(
                     f"original_identify_file not exists: {original_identify_file}"
                 )
-            # 复制文件并设置权限
+            # Copy file and set permissions.
             shutil.copy2(original_identify_file, identify_file)
             os.chmod(identify_file, stat.S_IRUSR | stat.S_IWUSR)
 

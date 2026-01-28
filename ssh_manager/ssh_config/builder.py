@@ -25,7 +25,7 @@ def get_int_or_none_in_dict(d: Dict, key: str) -> int:
 def get_identifier_file_path(
     ssh_directory: str, server_name: str, original_identifier_file_path: str
 ):
-    # 提取出 original_identifier_file_path 中的文件名，然后放到  ssh_directory/server_name 文件夹下
+    # Extract the filename from original_identifier_file_path and place it under ssh_directory/server_name.
     return os.path.normpath(
         os.path.join(
             ssh_directory, server_name, original_identifier_file_path.split("/")[-1]
@@ -345,10 +345,10 @@ class SSHHostConfig:
 
 #     def to_string(self, indent: int = 0) -> str:
 #         ret = ""
-#         # 用名字的字典序排序
+#         # Sort by name in lexicographical order
 #         self.ssh_host_configs.sort(key=lambda x: x.name)
 
-#         # 检测重名
+#         # Check for duplicate names
 #         for i in range(len(self.ssh_host_configs) - 1):
 #             if self.ssh_host_configs[i].name == self.ssh_host_configs[i + 1].name:
 #                 raise ValueError(
